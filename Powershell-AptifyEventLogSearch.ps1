@@ -5,19 +5,19 @@ $filter = Read-Host "Search for"
 $startTime = Read-Host "Start Date (default of $defaultStartTime)"
 $endTime = Read-Host "End Date (default of $defaultEndTime)"
 
-$endTim
-
 if ($startTime.Length -eq 0 -or !($startTime -as [DateTime])) {
     $startTime = $defaultStartTime.ToString()
 }
 
-if ($endTime.Length -eq 0 -or !($endDate -as [DateTime])) {
+if ($endTime.Length -eq 0 -or !($endTime -as [DateTime])) {
     $endTime = $defaultEndTime.ToString()
 }
 
 $outputMethod = Read-Host "Output to File (y/n)"
 
 $filter = "*" + $filter + "*"
+
+Write-Host "Searching Application Event Log, this could take awhile..."
 
 $events = Get-EventLog -LogName “Application” -Source “Aptify*” -Message $filter -After $startTime -Before $endTime
 #$events = Get-WinEvent -FilterHashtable @{LogName="Application"; ProviderName="Aptify*"; StartTime="$startTime"; EndTime="$endTime"}
