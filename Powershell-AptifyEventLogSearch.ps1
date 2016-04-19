@@ -22,6 +22,13 @@ Write-Host "Searching Application Event Log, this could take awhile..."
 $events = Get-EventLog -LogName “Application” -Source “Aptify*” -Message $filter -After $startTime -Before $endTime
 #$events = Get-WinEvent -FilterHashtable @{LogName="Application"; ProviderName="Aptify*"; StartTime="$startTime"; EndTime="$endTime"}
 
+$eventsCount = if ($events.Count -lt 1) { 0 } else { $events.Count }
+
+Write-Host "Search completed. $($eventsCount) event(s) found."
+
+if ($outputMethod -eq "y" -or $outputMethod -eq "yes") {
+    Write-Host "Creating results file..."
+}
 
 $results = "<Events>"
 
@@ -41,7 +48,7 @@ foreach ($event in $events) {
 
 $results += "</Events>"
 
-if ($outputMethod -eq "y" -or $outMethod -eq "yes") {
+if ($outputMethod -eq "y" -or $outputMethod -eq "yes") {
 
     $filterName = $filter -replace '[^A-Za-z0-9-_\.\[\]]', ''
     $startTimeName = $startTime -replace '[^A-Za-z0-9-_\.\[\]]', ''
@@ -58,3 +65,5 @@ if ($outputMethod -eq "y" -or $outMethod -eq "yes") {
 else {
     $results
 }
+
+$wait = Read-Host "Press enter to exit..."
