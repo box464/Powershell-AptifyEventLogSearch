@@ -16,4 +16,4 @@ This script provides a way to filter the Application Event Logs down to the entr
 * To Console as XML
 * To File as XML
 * Files are stored on the currently logged in user's desktop in the following format:
-    * example: AptifyErrorSearch_[username]_[filter]_[startDate]_[endDate].xml
+    * example: `AptifyErrorSearch_[username]_[filter]_[startDate]_[endDate].xml`
