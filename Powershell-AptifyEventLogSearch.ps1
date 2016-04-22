@@ -1,13 +1,16 @@
 $defaultStartTime = Get-Date -Hour 0 -Minute 0 -Second 0
-$defaultEndTime = Get-Date -Hour 23 -Minute 59 -Second 59
 
 $filter = Read-Host "Search for"
+
 $startTime = Read-Host "Start Date (default of $defaultStartTime)"
-$endTime = Read-Host "End Date (default of $defaultEndTime)"
 
 if ($startTime.Length -eq 0 -or !($startTime -as [DateTime])) {
     $startTime = $defaultStartTime.ToString()
 }
+
+$defaultEndTime = Get-Date $startTime -Hour 23 -Minute 59 -Second 59
+
+$endTime = Read-Host "End Date (default of $defaultEndTime)"
 
 if ($endTime.Length -eq 0 -or !($endTime -as [DateTime])) {
     $endTime = $defaultEndTime.ToString()
