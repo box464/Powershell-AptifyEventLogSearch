@@ -1,72 +1,87 @@
-$defaultStartTime = Get-Date -Hour 0 -Minute 0 -Second 0
+do {
 
-$filter = Read-Host "Search for"
+    $defaultStartTime = Get-Date -Hour 0 -Minute 0 -Second 0
 
-$startTime = Read-Host "Start Date (default of $defaultStartTime)"
+    $filter = Read-Host "Search for"
 
-if ($startTime.Length -eq 0 -or !($startTime -as [DateTime])) {
-    $startTime = $defaultStartTime.ToString()
-}
+    $startTime = Read-Host "Start Date (default of $defaultStartTime)"
 
-$defaultEndTime = Get-Date $startTime -Hour 23 -Minute 59 -Second 59
+    if ($startTime.Length -eq 0 -or !($startTime -as [DateTime])) {
+        $startTime = $defaultStartTime.ToString()
+    }
 
-$endTime = Read-Host "End Date (default of $defaultEndTime)"
+    $defaultEndTime = Get-Date $startTime -Hour 23 -Minute 59 -Second 59
 
-if ($endTime.Length -eq 0 -or !($endTime -as [DateTime])) {
-    $endTime = $defaultEndTime.ToString()
-}
+    $endTime = Read-Host "End Date (default of $defaultEndTime)"
 
-$outputMethod = Read-Host "Output to File (y/n)"
+    if ($endTime.Length -eq 0 -or !($endTime -as [DateTime])) {
+        $endTime = $defaultEndTime.ToString()
+    }
 
-$filter = "*" + $filter + "*"
+    $outputMethod = Read-Host "Output to File (y/n)"
 
-Write-Host "Searching Application Event Log, this could take awhile..."
+    $filter = "*" + $filter + "*"
 
-$events = Get-EventLog -LogName “Application” -Source “Aptify*” -Message $filter -After $startTime -Before $endTime
-#$events = Get-WinEvent -FilterHashtable @{LogName="Application"; ProviderName="Aptify*"; StartTime="$startTime"; EndTime="$endTime"}
+    Write-Host "Searching Application Event Log..."
 
-$eventsCount = if ($events.Count -lt 1) { 0 } else { $events.Count }
+    #$events = Get-EventLog -LogName “Application” -Source “Aptify*” -Message $filter -After $startTime -Before $endTime
+    $events = Get-WinEvent -FilterHashtable @{LogName="Application"; ProviderName="Aptify*"; StartTime="$startTime"; EndTime="$endTime"}
 
-Write-Host "Search completed. $($eventsCount) event(s) found."
+    $eventsCount = if ($events.Count -lt 1) { 0 } else { $events.Count }
 
-if ($outputMethod -eq "y" -or $outputMethod -eq "yes") {
-    Write-Host "Creating results file..."
-}
+    $found = 0;
 
-$results = "<Events>"
+    if ($eventsCount -gt 0) {
+        Write-Host "Filtering Results..."
 
-foreach ($event in $events) { 
-    $results += @"
-    <Event>
-        <DateTime>$($event.TimeGenerated)</DateTime>
-        <Source>$($event.Source)</Source>
-        <EntryType>$($event.EntryType)</EntryType>
-        <Message><![CDATA[[
-            $($event.Message -replace "`n", "`r`n" )
-        ]]>
-        </Message>
-    </Event>
+        $results = "<Events>"
+
+        foreach ($event in $events) { 
+            if ($event[0].Properties[0].Value -like $filter) {
+		        $results += @"
+		        <Event>
+			        <DateTime>$($event.TimeCreated)</DateTime>
+			        <Source>$($event.ProviderName)</Source>
+			        <EntryType>$($event.LevelDisplayName)</EntryType>
+			        <Message><![CDATA[[
+				        $($event.Properties[0].Value -replace "`n", "`r`n" )
+			        ]]>
+			        </Message>
+		        </Event>
 "@
+                $found++
+            }
+        }
+
+        $results += "</Events>"
+    }
+
+    Write-Host "$found result(s) were found that match your search criteria."
+
+
+    if ($found -gt 0 -and ($outputMethod -eq "y" -or $outputMethod -eq "yes")) {
+
+        $filterName = $filter -replace '[^A-Za-z0-9-_\.\[\]]', ''
+        $startTimeName = $startTime -replace '[^A-Za-z0-9-_\.\[\]]', ''
+        $endTimeName = $endTime -replace '[^A-Za-z0-9-_\.\[\]]', ''
+        $userName = $env:USERNAME -replace '[^A-Za-z0-9-_\.\[\]]', ''
+        $filePath = $Env:userprofile + "\desktop\AptifyErrorSearch_" + $userName + "_" + $filterName + "_" + $startTimeName + "_" + $endTimeName + ".xml"
+
+        $xmlResults = [xml]$results
+
+        $xmlResults.Save($filePath)
+
+        Write-Host "File saved to $filePath"
+    }
+    else {
+        if ($found -gt 0) {
+            $results
+        }
+    }
+
+    Write-Host " "
+    Write-Host " "
+
+    $response = Read-Host "Press enter to start another search, or type quit to exit..."
 }
-
-$results += "</Events>"
-
-if ($outputMethod -eq "y" -or $outputMethod -eq "yes") {
-
-    $filterName = $filter -replace '[^A-Za-z0-9-_\.\[\]]', ''
-    $startTimeName = $startTime -replace '[^A-Za-z0-9-_\.\[\]]', ''
-    $endTimeName = $endTime -replace '[^A-Za-z0-9-_\.\[\]]', ''
-    $userName = $env:USERNAME -replace '[^A-Za-z0-9-_\.\[\]]', ''
-    $filePath = $Env:userprofile + "\desktop\AptifyErrorSearch_" + $userName + "_" + $filterName + "_" + $startTimeName + "_" + $endTimeName + ".xml"
-
-    $xmlResults = [xml]$results
-
-    $xmlResults.Save($filePath)
-
-    Write-Host "File saved to $filePath"
-}
-else {
-    $results
-}
-
-$wait = Read-Host "Press enter to exit..."
+while ($response -ne "quit" -or $response -ne "exit")
