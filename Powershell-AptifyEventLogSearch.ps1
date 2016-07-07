@@ -84,4 +84,4 @@ do {
 
     $response = Read-Host "Press enter to start another search, or type quit to exit..."
 }
-while ($response -ne "quit" -and $response -ne "exit")
+while ($response -ne "quit")
