@@ -7,6 +7,7 @@ This script provides a way to filter the Application Event Logs down to the entr
 
 ## Requirements
 This script has been tested and utilized on the following environment:
+* Aptify 5.5.3 (these scripts were created with Aptify 5.5.3, I can't verify their usability on other versions)
 * Windows Server 2012 R2 Standard Edition
 * Powershell 4.0 and above (verified not working with Powershell 2.0)
    * [Verify your Powershell Version](http://stackoverflow.com/questions/1825585/determine-installed-powershell-version)
